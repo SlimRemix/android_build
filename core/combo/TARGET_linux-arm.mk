@@ -113,7 +113,7 @@ endif
 endif
 
 ifeq ($(strip $(ENABLE_STRICT_ALIASING)),true)
-  $(combo_2nd_arch_prefix)TARGET_arm_CFLAGS += -fstrict-aliasing
+  $(combo_2nd_arch_prefix)TARGET_arm_CFLAGS += -fstrict-aliasing -Wstrict-aliasing=3 -Werror=strict-aliasing
 endif
 
 # Set FORCE_ARM_DEBUGGING to "true" in your buildspec.mk

@@ -12,20 +12,18 @@ LOCAL_CONLYFLAGS := $(call subst-clang-qcom-opt,$(LOCAL_CONLYFLAGS))
 endif
 
 # Flags and linking
-my_cflags += $(CLANG_QCOM_CONFIG_KRAIT_Ofast_FLAGS)
-my_cppflags += $(CLANG_QCOM_CONFIG_KRAIT_Ofast_FLAGS)
-my_ldflags += $(CLANG_QCOM_CONFIG_KRAIT_FLAGS) -Wl,--gc-sections
-LOCAL_CONLYFLAGS += $(CLANG_QCOM_CONFIG_KRAIT_Ofast_FLAGS)  
-# Set different mcpu for GCC Assembler because it doesnt know -mcpu=krait and defaults to -march=armv7-a
-my_asflags += $(clang_qcom_mcpu_as)
+my_cflags += $(CLANG_QCOM_CONFIG_Ofast_FLAGS)
+my_cppflags += $(CLANG_QCOM_CONFIG_Ofast_FLAGS)
+my_ldflags += $(CLANG_QCOM_CONFIG_LDFLAGS)
+LOCAL_CONLYFLAGS += $(CLANG_QCOM_CONFIG_Ofast_FLAGS)  
 
-# -fparallel documentation 3.6.4
-ifeq ($(USE_CLANG_QCOM_ONLY_ON_SELECTED_MODULES)$(LOCAL_MODULE),true$(filter $(LOCAL_MODULE),$(CLANG_QCOM_USE_PARALLEL_MODULES)))
-my_cflags += $(CLANG_QCOM_CONFIG_KRAIT_PARALLEL_FLAGS)
-my_cppflags += $(CLANG_QCOM_CONFIG_KRAIT_PARALLEL_FLAGS)
-my_asflags += $(CLANG_QCOM_CONFIG_KRAIT_PARALLEL_FLAGS)
-my_ldflags += $(CLANG_QCOM_CONFIG_KRAIT_PARALLEL_FLAGS)
-LOCAL_CONLYFLAGS += $(CLANG_QCOM_CONFIG_KRAIT_PARALLEL_FLAGS)
+
+ifneq ($(LOCAL_MODULE),$(filter $(LOCAL_MODULE),$(CLANG_QCOM_DONT_USE_PARALLEL_MODULES)))
+my_cflags += $(CLANG_QCOM_CONFIG_PARALLEL_FLAGS)
+my_cppflags += $(CLANG_QCOM_CONFIG_PARALLEL_FLAGS)
+my_asflags += $(CLANG_QCOM_CONFIG_PARALLEL_FLAGS)
+my_ldflags += $(CLANG_QCOM_CONFIG_PARALLEL_FLAGS)
+LOCAL_CONLYFLAGS += $(CLANG_QCOM_CONFIG_PARALLEL_FLAGS)
 endif
 
 # Set language dialect to C++11
@@ -38,12 +36,6 @@ ifeq ($(LOCAL_MODULE),$(filter $(LOCAL_MODULE),$(CLANG_QCOM_GNU++11_MODULES)))
 my_cppflags += -std=gnu++11
 endif
 
-# libc++abi bug: https://android-review.googlesource.com/#/c/110170/
-# Skia doesnt like the clang assembler
-ifeq ($(LOCAL_MODULE),$(filter $(LOCAL_MODULE),$(CLANG_QCOM_DONT_USE_INTEGRATED_AS_MODULES)))
-my_cflags += -no-integrated-as -Xassembler -mcpu=cortex-a15
-endif
-
 ifeq ($(CLANG_QCOM_SHOW_FLAGS_LOCAL),true)
 $(info local MODULE       : $(LOCAL_MODULE))
 $(info cflags             : $(my_cflags))
@@ -52,21 +44,4 @@ $(info asflags            : $(my_asflags))
 $(info ldflags            : $(my_ldflags))    
 $(info conly              : $(LOCAL_CONLYFLAGS))
 $(info )
-endif
-
-ifeq ($(USE_CLANG_QCOM_POLLY),true)
-    ifdef POLLYCC
-      ifneq (1,$(words $(filter $(DISABLE_POLLY),$(LOCAL_MODULE))))
-        ifdef LOCAL_CFLAGS
-          LOCAL_CFLAGS += $(POLLYCC)
-        else
-          LOCAL_CFLAGS := $(POLLYCC)
-        endif
-        ifdef LOCAL_CPPFLAGS
-          LOCAL_CPPFLAGS += $(POLLYCC)
-        else
-          LOCAL_CPPFLAGS := $(POLLYCC)
-        endif
-     endif
-   endif
 endif
